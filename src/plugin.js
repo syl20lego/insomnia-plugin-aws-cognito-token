@@ -1,4 +1,5 @@
 const AWSCognito = require('amazon-cognito-identity-js')
+var jwtDecode = require('jwt-decode');
 
 const session = ({UserPoolId, ClientId, Username, Password}) => new Promise((resolve, reject) => {
   new AWSCognito.CognitoUser({
@@ -25,10 +26,11 @@ const session = ({UserPoolId, ClientId, Username, Password}) => new Promise((res
 
 const validToken = token => {
   const now = Date.now().valueOf() / 1000
-  if (typeof token.exp !== 'undefined' && token.exp < now) {
+  const data = jwtDecode(token)
+  if (typeof data.exp !== 'undefined' && data.exp < now) {
     return false
   }
-  if (typeof token.nbf !== 'undefined' && token.nbf > now) {
+  if (typeof data.nbf !== 'undefined' && data.nbf > now) {
     return false
   }
   return true
