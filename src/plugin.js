@@ -13,7 +13,7 @@ const session = ({UserPoolId, ClientId, Username, Password}) => new Promise((res
   }),
     {
       onSuccess: result => {
-        console.log(result.accessToken.jwtToken)
+        // console.log(result.accessToken.jwtToken)
         resolve(result.accessToken.jwtToken)
       },
       onFailure: error => {
@@ -22,6 +22,17 @@ const session = ({UserPoolId, ClientId, Username, Password}) => new Promise((res
       }
     })
 })
+
+const validToken = token => {
+  const now = Date.now().valueOf() / 1000
+  if (typeof token.exp !== 'undefined' && token.exp < now) {
+    return false
+  }
+  if (typeof token.nbf !== 'undefined' && token.nbf > now) {
+    return false
+  }
+  return true
+}
 
 // context
 //    app:{alert: ƒ, prompt: ƒ, getPath: ƒ, showSaveDialog: ƒ}
@@ -37,9 +48,18 @@ const run = async (context, UserPoolId, ClientId, Username, Password) => {
 
 module.exports.requestHooks = [
   async context => {
-    const data = JSON.parse(await context.store.getItem('Cognito'))
-    const token = await session(data)
-    context.request.setHeader('Authorization', token);
+    const data = await context.store.getItem('Cognito')
+    const token = await context.store.getItem(data)
+    if (token && validToken(token)) {
+      console.log("Existing token", token)
+      context.request.setHeader('Authorization', token);
+    } else {
+      const params = JSON.parse(data)
+      const token = await session(params)
+      console.log("New token", token)
+      await context.store.setItem(data, token)
+      context.request.setHeader('Authorization', token);
+    }
   }
 ]
 
