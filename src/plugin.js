@@ -43,6 +43,18 @@ const validToken = token => {
 //    store:{hasItem: ƒ, setItem: ƒ, getItem: ƒ, removeItem: ƒ, clear: ƒ, …}
 //    util:{render: ƒ, models: {…}}
 const run = async (context, UserPoolId, ClientId, Username, Password) => {
+  if (!UserPoolId) {
+    throw new Error('UserPoolId attribute is required');
+  }
+  if (!ClientId) {
+    throw new Error('ClientId attribute is required');
+  }
+  if (!Username) {
+    throw new Error('Username attribute is required');
+  }
+  if (!Password) {
+    throw new Error('Password attribute is required');
+  }
   const data = { UserPoolId, ClientId, Username, Password }
   await context.store.setItem('Cognito', JSON.stringify(data))
   return JSON.stringify(data)
