@@ -1,13 +1,17 @@
 {
   "name": "insomnia-plugin-aws-cognito-token",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Plugin for Insomnia to provide Cognito JWT token from AWS",
   "main": "./src/plugin.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Sylvain Legault",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/syl20lego/insomnia-plugin-aws-cognito-token.git"
+  },
   "insomnia": {
     "name": "awscognitotoken",
     "description": "Plugin for Insomnia to provide Cognito JWT token from AWS"
