@@ -11,4 +11,16 @@ Insomnia plugin for AWS Cognito allowing you to fetch the JWT Token automaticall
 [Insomian Plugin API](https://support.insomnia.rest/article/26-plugins) support an Asynchronous API perfect form performing AWS Cognito Authentication before doing any 
 
 ## Usage
-TBD
+
+### Environment
+
+![Environment](./images/Add_environment.png)
+
+### Add Plugin's data
+
+![Form](./images/Plugin_form.png)
+
+### Request Header
+
+![Header](./images/Authorization_header.png)
+
