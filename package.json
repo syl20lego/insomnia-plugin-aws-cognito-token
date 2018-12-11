@@ -12,6 +12,12 @@
     "type": "git",
     "url": "https://github.com/syl20lego/insomnia-plugin-aws-cognito-token.git"
   },
+  "keywords": [
+    "insomnia",
+    "plugin",
+    "AWS",
+    "Cognito"
+  ],
   "insomnia": {
     "name": "awscognitotoken",
     "description": "Plugin for Insomnia to provide Cognito JWT token from AWS"
