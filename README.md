@@ -14,13 +14,13 @@ Insomnia plugin for AWS Cognito allowing you to fetch the JWT Token automaticall
 
 ### Environment
 
-![Environment](./images/Add_environment.png)
+![Environment](https://github.com/syl20lego/insomnia-plugin-aws-cognito-token/raw/master/images/Add_environment.png)
 
 ### Add Plugin's data
 
-![Form](./images/Plugin_form.png)
+![Form](https://github.com/syl20lego/insomnia-plugin-aws-cognito-token/raw/master/images/Plugin_form.png)
 
 ### Request Header
 
-![Header](./images/Authorization_header.png)
+![Header](https://github.com/syl20lego/insomnia-plugin-aws-cognito-token/raw/master/images/Authorization_header.png)
 
