@@ -1,6 +1,8 @@
 # insomnia-plugin-aws-cognito-token
 Insomnia plugin for AWS Cognito allowing you to fetch the JWT Token automatically and inject the token in the `Authorization` header.
 
+Note: version 0.10.0 changed the Tags order, you may have to reorder your Tags value.
+
 ## NPM
 [https://www.npmjs.com/package/insomnia-plugin-aws-cognito-token](https://www.npmjs.com/package/insomnia-plugin-aws-cognito-token)
 

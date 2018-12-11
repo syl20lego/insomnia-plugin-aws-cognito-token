@@ -1,6 +1,6 @@
 {
   "name": "insomnia-plugin-aws-cognito-token",
-  "version": "0.0.9",
+  "version": "0.10.0",
   "description": "Plugin for Insomnia to provide Cognito JWT token from AWS",
   "main": "./src/plugin.js",
   "scripts": {
@@ -16,7 +16,8 @@
     "insomnia",
     "plugin",
     "AWS",
-    "Cognito"
+    "Cognito",
+    "AppSync"
   ],
   "insomnia": {
     "name": "awscognitotoken",
