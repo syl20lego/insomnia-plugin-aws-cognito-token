@@ -1,6 +1,8 @@
 const AWSCognito = require('amazon-cognito-identity-js')
-var jwtDecode = require('jwt-decode');
+const jwtDecode = require('jwt-decode');
+const CryptoJS = require('crypto-js')
 
+// Get JWT Token from Cognito
 const session = ({UserPoolId, ClientId, Username, Password}) => new Promise((resolve, reject) => {
   new AWSCognito.CognitoUser({
     Username,
@@ -24,7 +26,9 @@ const session = ({UserPoolId, ClientId, Username, Password}) => new Promise((res
     })
 })
 
+// Validate if the token has expired
 const validToken = token => {
+  console.log('reading', token)
   const now = Date.now().valueOf() / 1000
   const data = jwtDecode(token)
   if (typeof data.exp !== 'undefined' && data.exp < now) {
@@ -36,12 +40,35 @@ const validToken = token => {
   return true
 }
 
-// context
-//    app:{alert: ƒ, prompt: ƒ, getPath: ƒ, showSaveDialog: ƒ}
-//    context:{getMeta: ƒ, getKeysContext: ƒ, getPurpose: ƒ, AWS: ""}
-//    meta:{requestId: "req_822652edaf9b43409f2218d5098e6d73", workspaceId: "wrk_04907ce7ba2b47c4bd8a012db999214f"}
-//    store:{hasItem: ƒ, setItem: ƒ, getItem: ƒ, removeItem: ƒ, clear: ƒ, …}
-//    util:{render: ƒ, models: {…}}
+// Encode our token
+const base64url = (source) => {
+  encodedSource = CryptoJS.enc.Base64.stringify(source);
+  encodedSource = encodedSource.replace(/=+$/, '');
+  encodedSource = encodedSource.replace(/\+/g, '-');
+  encodedSource = encodedSource.replace(/\//g, '_');
+  return encodedSource;
+}
+
+// Create a fake token to keep in store, so we don't query for same wrong values
+const errorToken = error => {
+  const header = {
+    "alg": "HS256",
+    "typ": "JWT"
+  };
+  const stringifiedHeader = CryptoJS.enc.Utf8.parse(JSON.stringify(header));
+  const encodedHeader = base64url(stringifiedHeader);
+  // If error we keep it for 5 min
+  const exp = (Date.now().valueOf() / 1000) + 300
+  const data = {
+    error,
+    exp
+  };
+  const stringifiedData = CryptoJS.enc.Utf8.parse(JSON.stringify(data));
+  const encodedData = base64url(stringifiedData);
+  return encodedHeader + "." + encodedData;
+}
+
+// Main run function
 const run = async (context, UserPoolId, ClientId, Username, Password) => {
   if (!UserPoolId) {
     throw new Error('UserPoolId attribute is required');
@@ -55,33 +82,36 @@ const run = async (context, UserPoolId, ClientId, Username, Password) => {
   if (!Password) {
     throw new Error('Password attribute is required');
   }
-  const data = { UserPoolId, ClientId, Username, Password }
-  await context.store.setItem('Cognito', JSON.stringify(data))
-  return JSON.stringify(data)
-}
-
-module.exports.requestHooks = [
-  async context => {
-    const data = await context.store.getItem('Cognito')
-    const token = await context.store.getItem(data)
-    if (token && validToken(token)) {
-      console.log("Existing token", token)
-      context.request.setHeader('Authorization', token);
-    } else {
-      const params = JSON.parse(data)
+  const data = JSON.stringify({ UserPoolId, ClientId, Username, Password })
+  const token = await context.store.getItem(data)
+  if (token && validToken(token)) {
+    if (jwtDecode(token).error){
+      // Display error
+      return jwtDecode(token).error
+    }
+    // JWT token is still valid, reuse it
+    return token
+  } else {
+    // Compute a new token
+    const params = JSON.parse(data)
+    try {
       const token = await session(params)
-      console.log("New token", token)
       await context.store.setItem(data, token)
-      context.request.setHeader('Authorization', token);
+      return token
+    }
+    catch(error){
+      // To keep thing simle we create a fake JWT token with error message
+      const token = errorToken(error.message)
+      await context.store.setItem(data, token)
+      return error.message
     }
   }
-]
+}
 
 module.exports.templateTags = [{
   name: 'AwsCognitoToken',
   displayName: 'AWS Cognito Token',
   description: 'Plugin for Insomnia to provide Cognito JWT token from AWS',
-
   args: [
     {
       displayName: 'UserPoolId',
