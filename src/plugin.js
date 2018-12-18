@@ -16,13 +16,7 @@ const session = ({ Username, Password, UserPoolId, ClientId, TokenType }) => new
   }),
   {
     onSuccess: result => {
-      // console.log(result.accessToken.jwtToken);
-      // console.log(result.idToken.jwtToken);
-      if (TokenType === 'id') {
-        resolve(result.idToken.jwtToken);
-        return;
-      }
-      resolve(result.accessToken.jwtToken);
+      TokenType === 'id' ? resolve(result.idToken.jwtToken): resolve(result.accessToken.jwtToken);
     },
     onFailure: error => {
       console.log(error);
@@ -33,7 +27,6 @@ const session = ({ Username, Password, UserPoolId, ClientId, TokenType }) => new
 
 // Validate if the token has expired
 const validToken = token => {
-  // console.log('reading', token)
   const now = Date.now().valueOf() / 1000
   const data = jwtDecode(token)
   if (typeof data.exp !== 'undefined' && data.exp < now) {
@@ -74,21 +67,21 @@ const errorToken = error => {
 }
 
 // Main run function
-const run = async (context, TokenType, Username, Password, UserPoolId, ClientId) => {
-  if (!TokenType) {
-    throw new Error("TokenType attribute is required");
-  }
+const run = async (context, Username, Password, UserPoolId, ClientId, TokenType) => {
   if (!Username) {
-    throw new Error('Username attribute is required');
+    throw new Error('Username attribute is required')
   }
   if (!Password) {
-    throw new Error('Password attribute is required');
+    throw new Error('Password attribute is required')
   }
   if (!UserPoolId) {
-    throw new Error('UserPoolId attribute is required');
+    throw new Error('UserPoolId attribute is required')
   }
   if (!ClientId) {
-    throw new Error('ClientId attribute is required');
+    throw new Error('ClientId attribute is required')
+  }
+  if (!TokenType) {
+    TokenType = 'access'
   }
 
   const key = [ Username, Password, UserPoolId, ClientId, TokenType ].join('::')
@@ -122,21 +115,6 @@ module.exports.templateTags = [{
   description: 'Plugin for Insomnia to provide Cognito JWT token from AWS',
   args: [
     {
-      displayName: "TokenType",
-      type: "enum",
-      defaultValue: "access",
-      options: [
-        {
-          displayName: "access",
-          value: "access"
-        },
-        {
-          displayName: "id",
-          value: "id"
-        }
-      ]
-    },
-    {
       displayName: 'Username',
       type: 'string',
       validate: arg => (arg ? '' : 'Required')
@@ -156,7 +134,21 @@ module.exports.templateTags = [{
       type: 'string',
       validate: arg => (arg ? '' : 'Required')
     },
-
+    {
+      displayName: "TokenType",
+      type: "enum",
+      defaultValue: "access",
+      options: [
+        {
+          displayName: "access",
+          value: "access"
+        },
+        {
+          displayName: "id",
+          value: "id"
+        }
+      ]
+    },
   ],
   run
 }];

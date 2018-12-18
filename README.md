@@ -12,6 +12,9 @@ Note: version 0.10.0 changed the Tags order, you may have to reorder your Tags v
 ## Plugin
 [Insomian Plugin API](https://support.insomnia.rest/article/26-plugins) support an Asynchronous API perfect form performing AWS Cognito Authentication before doing any request to AppSync for example
 
+## Install
+![Install](https://github.com/syl20lego/insomnia-plugin-aws-cognito-token/raw/master/images/Install.png)
+
 ## Usage
 
 ### Environment
