@@ -3,7 +3,7 @@ const jwtDecode = require('jwt-decode');
 const CryptoJS = require('crypto-js')
 
 // Get JWT Token from Cognito
-const session = ({ Username, Password, UserPoolId, ClientId }) => new Promise((resolve, reject) => {
+const session = ({ Username, Password, UserPoolId, ClientId, TokenType }) => new Promise((resolve, reject) => {
   new AWSCognito.CognitoUser({
     Username,
     Pool: new AWSCognito.CognitoUserPool({
@@ -14,21 +14,26 @@ const session = ({ Username, Password, UserPoolId, ClientId }) => new Promise((r
     Username,
     Password
   }),
-    {
-      onSuccess: result => {
-        // console.log(result.accessToken.jwtToken)
-        resolve(result.accessToken.jwtToken)
-      },
-      onFailure: error => {
-        console.log(error)
-        reject(error)
+  {
+    onSuccess: result => {
+      // console.log(result.accessToken.jwtToken);
+      // console.log(result.idToken.jwtToken);
+      if (TokenType === 'id') {
+        resolve(result.idToken.jwtToken);
+        return;
       }
-    })
-})
+      resolve(result.accessToken.jwtToken);
+    },
+    onFailure: error => {
+      console.log(error);
+      reject(error);
+    }
+  });
+});
 
 // Validate if the token has expired
 const validToken = token => {
-  console.log('reading', token)
+  // console.log('reading', token)
   const now = Date.now().valueOf() / 1000
   const data = jwtDecode(token)
   if (typeof data.exp !== 'undefined' && data.exp < now) {
@@ -69,7 +74,10 @@ const errorToken = error => {
 }
 
 // Main run function
-const run = async (context, Username, Password, UserPoolId, ClientId) => {
+const run = async (context, TokenType, Username, Password, UserPoolId, ClientId) => {
+  if (!TokenType) {
+    throw new Error("TokenType attribute is required");
+  }
   if (!Username) {
     throw new Error('Username attribute is required');
   }
@@ -83,7 +91,7 @@ const run = async (context, Username, Password, UserPoolId, ClientId) => {
     throw new Error('ClientId attribute is required');
   }
 
-  const key = [ Username, Password, UserPoolId, ClientId ].join('::')
+  const key = [ Username, Password, UserPoolId, ClientId, TokenType ].join('::')
   const token = await context.store.getItem(key)
   if (token && validToken(token)) {
     if (jwtDecode(token).error){
@@ -95,7 +103,7 @@ const run = async (context, Username, Password, UserPoolId, ClientId) => {
   } else {
     // Compute a new token
     try {
-      const token = await session({ Username, Password, UserPoolId, ClientId})
+      const token = await session({ Username, Password, UserPoolId, ClientId, TokenType })
       await context.store.setItem(key, token)
       return token
     }
@@ -113,6 +121,21 @@ module.exports.templateTags = [{
   displayName: 'AWS Cognito Token',
   description: 'Plugin for Insomnia to provide Cognito JWT token from AWS',
   args: [
+    {
+      displayName: "TokenType",
+      type: "enum",
+      defaultValue: "access",
+      options: [
+        {
+          displayName: "access",
+          value: "access"
+        },
+        {
+          displayName: "id",
+          value: "id"
+        }
+      ]
+    },
     {
       displayName: 'Username',
       type: 'string',
