@@ -24,9 +24,12 @@
     "description": "Plugin for Insomnia to provide Cognito JWT token from AWS"
   },
   "dependencies": {
-    "amazon-cognito-identity-js": "^4.3.3",
+    "amazon-cognito-identity-js": "^4.4.0",
     "aws-sdk": "^2.733.0",
     "crypto-js": "^3.3.0",
     "jwt-decode": "^2.2.0"
+  },
+  "resolutions": {
+    "buffer": "^4.9.2"
   }
 }
