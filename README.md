@@ -2,6 +2,8 @@
 Insomnia plugin for AWS Cognito allowing you to fetch the JWT Token automatically and inject the token in the `Authorization` header.
 
 Note: version 0.10.0 changed the Tags order, you may have to reorder your Tags value.
+Note: version 0.14.0 change the UserPoolId to Region, it is kept backward compabible but you should remove the string after the 
+underscore to keep only the region part of the pool. E.g. us-east-1_ABCDER should not be us-east-1
 
 ## NPM
 [https://www.npmjs.com/package/insomnia-plugin-aws-cognito-token](https://www.npmjs.com/package/insomnia-plugin-aws-cognito-token)
