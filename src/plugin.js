@@ -1,4 +1,3 @@
-const AWSCognito = require("amazon-cognito-identity-js")
 const jwtDecode = require("jwt-decode")
 const CryptoJS = require("crypto-js")
 
