@@ -32,6 +32,7 @@ const session = async ({
     },
     body: JSON.stringify(requestBody),
   }
+  if (TokenType === 'raw_request') { return JSON.stringify(request) }
   const response = await fetch(`https://cognito-idp.${domain}.amazonaws.com`, request)
 
   if (response.status !== 200) {
@@ -192,6 +193,10 @@ module.exports.templateTags = [
           {
             displayName: "id",
             value: "id",
+          },
+          {
+            displayName: "Raw Request",
+            value: "raw_request",
           },
         ],
       },
