@@ -8,28 +8,37 @@ const session = async ({
   Region,
   ClientId,
   TokenType,
+  ClientSecret,
 }) => {
   const domain = Region.split('_')[0] // backward compatible with Pool
-  const response = await fetch(`https://cognito-idp.${domain}.amazonaws.com`, {
+  const requestBody = {
+    AuthFlow: "USER_PASSWORD_AUTH",
+    ClientId,
+    AuthParameters: {
+      USERNAME: Username,
+      PASSWORD: Password,
+    }
+  }
+  if (ClientSecret) {
+    const hash = secretHash(ClientSecret, Username, ClientId)
+    requestBody.AuthParameters.SECRET_HASH = hash
+  }
+
+  const request = {
     method: "post",
     headers: {
       "content-type": "application/x-amz-json-1.1",
       "x-amz-target": "AWSCognitoIdentityProviderService.InitiateAuth",
     },
-    body: JSON.stringify({
-      AuthFlow: "USER_PASSWORD_AUTH",
-      ClientId,
-      AuthParameters: {
-        USERNAME: Username,
-        PASSWORD: Password,
-      },
-    }),
-  })
+    body: JSON.stringify(requestBody),
+  }
+  const response = await fetch(`https://cognito-idp.${domain}.amazonaws.com`, request)
+
   if (response.status !== 200) {
     console.log(
       "Looks like there was a problem. Status Code: " + response.status
     )
-    return
+    return "Error in getting session: " + JSON.stringify({ request, status: response.status })
   }
   const { AuthenticationResult } = await response.json()
   return AuthenticationResult
@@ -39,6 +48,9 @@ const session = async ({
     : undefined
 }
 
+const secretHash = (ClientSecret, Username, ClientId) => (
+  CryptoJS.enc.Base64.stringify(
+    CryptoJS.HmacSHA256([Username, ClientId].join(''), ClientSecret)))
 
 // Validate if the token has expired
 const validToken = (token) => {
@@ -92,7 +104,8 @@ const run = async (
   Password,
   Region,
   ClientId,
-  TokenType
+  TokenType,
+  ClientSecret,
 ) => {
   if (!Username) {
     throw new Error("Username attribute is required")
@@ -110,7 +123,7 @@ const run = async (
     TokenType = "access"
   }
 
-  const key = [Username, Password, Region, ClientId, TokenType].join("::")
+  const key = [Username, Password, Region, ClientId, TokenType, ClientSecret].join("::")
   const token = await context.store.getItem(key)
   if (token && validToken(token)) {
     if (jwtDecode(token).error) {
@@ -128,6 +141,7 @@ const run = async (
         Region,
         ClientId,
         TokenType,
+        ClientSecret,
       })
       await context.store.setItem(key, token)
       return token
@@ -180,6 +194,10 @@ module.exports.templateTags = [
             value: "id",
           },
         ],
+      },
+      {
+        displayName: "ClientSecret",
+        type: "string",
       },
     ],
     run,
